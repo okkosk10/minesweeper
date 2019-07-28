@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Minesweeper</title>
+</head>
+
+<body onload="startGame()">
+
+<script type="text/javascript">
+
+document.addEventListener('contextmenu', function() {
+  event.preventDefault();
+});
+
+var randNum = 30; // 지뢰 갯수
+var flagCount; // 깃발 갯수
+var timeCount; // 타임 카운트
+var minemain;
+
+var reset;
+var tableall = new Array();
+var flagImageSrc = 'data:image/jpg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/4QBYRXhpZgAATU0AKgAAAAgABAExAAIAAAARAAAAPlEQAAEAAAABAQAAAFERAAQAAAABAAAAAFESAAQAAAABAAAAAAAAAABBZG9iZSBJbWFnZVJlYWR5AAD/2wBDAAIBAQIBAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcIDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAAZABkDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD998ZGDX4+/th/tveLv2F/+CxHxG8R+HX+3aXejSINb0SaQx2usW66XaHaTg7JE3MY5gCULEYZGkR/2D71+c/7MXw48PftCf8ABer9rLUfFGj2upXXwV/4QuTw2JBuijnv9EEr3MiHIeWI2y+UeAhdmwXWNk8zMsLWrRgqEuWUZJ37KzXz326n3nh/n2VZVicVUzii61KpRnBQ/mk5Qcbv7NrX5t00mtT7t+Cnxc0v49fCXw54z0W31S10vxNZR39rFqVo9pdRo4zh0b9GUsjjDIzoyser3f7P60cnsaK9OOi1Z8LUcZSbgrK7sr3suivbX1sj5x/4KXft3eIP2D/g5Y6x4L+CnxO+PPjDWrv7Pp3hzwjo17cRoiFTNPeXkFvOlpGqNhAyNJLIVVEKLNLD+Sf7PX/BVD9qb4C/t0/tFfGr/h3j+0Bq3/C/P+Ea/wCJN9i1eD+wv7H0+Sy/1/8AZDef52/f/q49mNvz53V+/wBRQSfNv/BNL9u/xB+3j8HL7WPGnwU+J3wH8Y6LdfZ9R8OeLtGvbeN0cuYZ7O7nt4Eu42RcOFRZIpAyugRoZJvpKiigD//Z';
+
+
+
+function startGame() {
+    myGameArea.start();
+
+    
+
+var e = document.getElementsByTagName("canvas")[0],
+   elemLeft = e.offsetLeft,
+   elemTop = e.offsetTop,
+   context = e.getContext('2d');
+
+   e.addEventListener('click', function(event) {
+   
+   var x = event.pageX - elemLeft,
+        y = event.pageY - elemTop;
+        //console.log(x, y);
+
+        if (y > reset.y && y < reset.y + reset.height 
+            && x > reset.x && x < reset.x + reset.width) {
+                myGameArea.start();
+            }
+
+    tableall.forEach(function(element) {
+
+        // 캔버스 내의 클릭 좌표에따라 버튼 선택
+        if (y > element.y && y < element.y + element.height 
+            && x > element.x && x < element.x + element.width) {
+                openTable(element.x ,element.y,0 ,0);
+                
+                
+        }
+    });
+}, false);
+
+e.addEventListener('mousedown', function(event) {
+    if ((event.button == 2) || (event.which == 3)) {
+    var x = event.pageX - elemLeft,
+        y = event.pageY - elemTop;
+        tableall.forEach(function(element) {
+
+// 캔버스 내의 클릭 좌표에따라 버튼 선택
+if (y > element.y && y < element.y + element.height 
+    && x > element.x && x < element.x + element.width) {
+       drawFlag(element.x,element.y);
+}
+});
+    }
+});
+
+
+
+
+
+}
+
+
+function drawFlag(x,y) {
+    if( x >= 60 && x < 60 + 25 * 15 && y >= 90 && y < 90 + 25 * 15 ) {
+    var index = (x - 60)/25 + ((y - 90)/25) * 15;
+    console.log("index:"+index + ", value:"+value);
+    var table = tableall[index];
+    var value = table.value;
+    var flag = table.flag;
+                if( value !== 'a') {
+                    if( !flag ) {
+                        table.flag = true;
+                    var image = new Image();
+                   image.onload = function() { 
+                    myGameArea.context.drawImage(image, x, y,20,20); 
+                       }
+                       image.src = flagImageSrc;
+                       setFlagCount( --flagCount );
+                    } else {
+                        table.flag = false;
+                        new component(20,20,'white',x,y,false);
+                        setFlagCount( ++flagCount );
+                    }
+              }   
+    }
+
+
+}
+
+
+
+function openTable(x,y, dx, dy, ignoreFlag) {
+    if( x >= 60 && x < 60 + 25 * 15 && y >= 90 && y < 90 + 25 * 15 ) {
+               // 클릭 좌표를 버튼 인덱스로 계산
+                var index = (x - 60)/25 + ((y - 90)/25) * 15;
+
+
+
+                var table = tableall[index];
+                var value = table.value;
+                if( value !== 'a' && (!table.flag || ignoreFlag)) {
+                    if( table.flag) {
+                        setFlagCount( ++flagCount );
+                    }
+                    tableall[index] = new component(20,20,'gray',x,y,'a',false); // 버튼색깔 바꾸기
+                    if( value != 0 ) {
+                        ctx = myGameArea.context;
+                        ctx.font = "10px Consolas";
+                        new textComponent(value,x+7,y+12); // 값 출력하기
+                    }
+                
+                
+
+                if(value == '*') {
+                    // 지뢰 발견 시 게임 결과 출력 및 초기화 구현하기
+                    alert("지뢰다옹!!!!");
+                    myGameArea.start();
+                } else if(value == 0) {
+
+                    if(dx > 0) {
+                        openTable(x + dx, y, 25, 0, true);                    
+                    } else if( dx < 0) {
+                        openTable(x + dx, y, -25, 0, true);
+                    } else {
+                        openTable(x + 25, y, 25, 0, true);
+                        openTable(x - 25, y, -25, 0, true);
+                    }
+
+                    if(dy > 0) {
+                        openTable(x, y + dy, 0, 25, true);
+                    } else if( dy < 0) {
+                        openTable(x, y + dy, 0, -25, true);
+                    } else {
+                        openTable(x, y + 25, 0, 25, true);
+                        openTable(x, y - 25, 0, -25, true);
+                    }
+                   
+                    openTable(x + 25, y + 25, 0, 0, true );
+                    openTable(x + 25, y - 25, 0, 0, true );
+                    openTable(x - 25, y + 25, 0, 0, true);
+                    openTable(x - 25, y - 25, 0, 0, true );
+                } 
+                }
+}
+   
+}
+
+
+
+
+// 캔버스 그리기
+var myGameArea = {
+    canvas : document.createElement("canvas"),
+    start : function() {
+        console.log("start!");
+        this.canvas.width = 500;
+        this.canvas.height = 500;
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+
+        minemain = new component(400, 400, "black", 45, 80);
+        timeCount = 0;
+        setInterval(countTimer);
+        setFlagCount(flagCount = randNum);
+        setResetButton();
+        prototable();
+
+    }
+
+    
+}
+
+function setResetButton() {
+    reset = new component(40, 30, "gray", 225, 40);  
+    ctx = myGameArea.context;
+    ctx.font = "13px Consolas";
+    new textComponent("RESET", 225 + 3, 40 + 20 );
+}
+
+// 1초마다 실행
+countTimer = setInterval(function() {
+//console.log( timeCount + "초지남");
+    timeCount++;
+    var min = Math.floor(timeCount / 60);
+    var sec = timeCount % 60;
+    var time = Math.floor(min / 10) + "" + min % 10 + ":" + Math.floor(sec / 10) + "" + sec % 10;
+
+    new component(40, 30, "gray", 50, 40);
+    ctx = myGameArea.context;
+    ctx.font = "14px Consolas";
+    new textComponent(time, 50 + 1, 40 + 20 );
+}, 1000);
+
+function setFlagCount(count) {
+    new component(40, 30, "gray", 400, 40);
+    ctx = myGameArea.context;
+    ctx.font = "20px Consolas";
+    new textComponent(count, 400 + 8, 40 + 20 );
+
+}
+
+// 요소 그리기
+function component(width, height, color, x, y, value, flag) {
+    this.value = value;
+    this.width = width;
+    this.height = height;
+    this.x = x;
+    this.y = y;    
+    this.flag = flag;
+    ctx = myGameArea.context;
+    ctx.fillStyle = color;
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+}
+
+// 버튼클릭하면 숫자 또는 지뢰(*) 값 출력하기
+function textComponent(text,x,y) {
+    ctx = myGameArea.context;
+    ctx.fillStyle = 'white';
+    ctx.fillText(text,x,y);
+}
+
+// 지뢰버튼 설정
+function prototable(){
+
+    var x = 60;
+    var y = 90;
+    var z = 25;
+    
+    var randMine = new Array(randNum);
+
+    // 0 ~ 224 숫자를 중복없이 지뢰 갯수만큼 생성
+    for(var i = 0; i < randNum; i ++ ) {
+        var randOverlap = false;
+        do {  
+            randOverlap = false;
+            var randValue = Math.floor(Math.random()*225);
+            for( var j = 0; j < i; j++ ) {
+                if( randValue == randMine[j] ) {
+                    randOverlap = true;
+                }
+            }
+            if( !randOverlap ) {
+                randMine[i] = randValue;
+                console.log(randValue);
+            }
+        } while( randOverlap );
+    } 
+
+
+    // 버튼 225개 생성, 지뢰 위치 지정
+    for(var i=0; i<15; i++){
+        for(var j=0; j<15; j++){
+        x +=z;
+        if(j==14) {
+        x=60;     
+        }
+
+        var value = 0;
+
+        for(var k = 0; k < randMine.length; k++) {
+            if( (x - 60)/25 + 15 * (y - 90)/25 == randMine[k] ) {
+                value = '*';
+                break;
+            }
+        }
+
+        var table = new component(20,20,"white", x, y, value,false);
+        
+        tableall[(x - 60)/25 + 15 * (y - 90)/25] = table;
+    }y +=z;      
+    
+    
+    } 
+
+    // 지뢰 주변 버튼값을 지뢰숫자로 지정
+    for( var i = 0; i < randMine.length; i++ ) {
+        // 예시 : 16번 버튼 주변 8방향 : 0,1,2,15,17,30,31,32
+        // 주변 8방향 버튼 인덱스 플러스 값 : -16,-15,-14,-1,+1,+14,+15,+16
+        var plusIndex = new Array(-16,-15,-14,-1,1,14,+15,16);
+        
+        
+
+        for( var j = 0; j < plusIndex.length; j++ ) {
+            
+            var index =  randMine[i] + plusIndex[j];
+
+            // 지뢰주변 1칸 거리만 영향 받도록 체크
+            check = Math.abs(randMine[i] % 15 - index % 15) <= 1; 
+            if( index >= 0 && index < 225 && check ) {
+                var value = tableall[index].value;
+                tableall[index].value = (value=='*')? value : value+1;
+            }
+        }
+
+
+
+    }
+
+
+
+
+}
+
+
+
+
+</script> 
+</body>
+
+</html>
